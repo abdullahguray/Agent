@@ -1,0 +1,15 @@
+{
+  "session_id": "session_20260718_152155",
+  "started_at": "2026-07-18T15:21:55.656960+00:00",
+  "last_activity": "2026-07-18T15:21:55.659963+00:00",
+  "commands_count": 1,
+  "files_modified": [],
+  "state_summary": "Session started",
+  "commands": [
+    {
+      "timestamp": "2026-07-18T15:21:55.659963+00:00",
+      "command": "Fixed opencode config format",
+      "response_summary": "Moved to .opencode/ with valid schema"
+    }
+  ]
+}

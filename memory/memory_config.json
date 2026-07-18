@@ -1,0 +1,43 @@
+{
+  "_description": "Memory System Configuration",
+  "version": "1.0.0",
+  "project": "Scrape Agent AI",
+  "sections": {
+    "active": {
+      "path": "sections/active",
+      "description": "Current session state and decisions",
+      "max_files": 50,
+      "retention_days": 7
+    },
+    "archive": {
+      "path": "sections/archive",
+      "description": "Historical data and completed tasks",
+      "max_files": 200,
+      "retention_days": 90
+    },
+    "rules": {
+      "path": "sections/rules",
+      "description": "Project rules, conventions, constraints",
+      "max_files": 30,
+      "retention_days": 365
+    },
+    "docs": {
+      "path": "sections/docs",
+      "description": "Project documentation and decisions",
+      "max_files": 100,
+      "retention_days": 365
+    },
+    "sessions": {
+      "path": "sections/sessions",
+      "description": "Session logs with timestamps",
+      "max_files": 500,
+      "retention_days": 30
+    }
+  },
+  "auto_save_interval_seconds": 6,
+  "backup_interval_hours": 24,
+  "max_memory_files": 1000,
+  "auto_archive_after_days": 7,
+  "default_section": "active",
+  "entry_point_marker": "opencode"
+}

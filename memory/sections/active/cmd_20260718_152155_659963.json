@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-07-18T15:21:55.659963+00:00",
+  "session_id": "session_20260718_152155",
+  "command": "Fixed opencode config format",
+  "response_summary": "Moved to .opencode/ with valid schema",
+  "context": {}
+}

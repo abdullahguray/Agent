@@ -1,0 +1,15 @@
+{
+  "session_id": "session_20260718_151908",
+  "started_at": "2026-07-18T15:19:08.586753+00:00",
+  "last_activity": "2026-07-18T15:19:08.589760+00:00",
+  "commands_count": 1,
+  "files_modified": [],
+  "state_summary": "Session started",
+  "commands": [
+    {
+      "timestamp": "2026-07-18T15:19:08.589760+00:00",
+      "command": "Fix opencode.json location",
+      "response_summary": "Moved from workspace root to project root: scrape-agent/opencode.json. Added session ID."
+    }
+  ]
+}

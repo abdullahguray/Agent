@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "project": "Scrape Agent AI",
+  "created": "2026-07-18T17:00:00Z",
+  "last_updated": "2026-07-18T15:21:55.669260+00:00",
+  "session_count": 0,
+  "total_commands": 0,
+  "sections": {
+    "active": {
+      "file_count": 5,
+      "last_access": "2026-07-18T15:21:55.669260+00:00"
+    },
+    "archive": {
+      "file_count": 0,
+      "last_access": ""
+    },
+    "rules": {
+      "file_count": 0,
+      "last_access": ""
+    },
+    "docs": {
+      "file_count": 2,
+      "last_access": "2026-07-18T15:21:55.659963+00:00"
+    },
+    "sessions": {
+      "file_count": 7,
+      "last_access": "2026-07-18T15:21:55.657960+00:00"
+    }
+  },
+  "memory_map": {}
+}

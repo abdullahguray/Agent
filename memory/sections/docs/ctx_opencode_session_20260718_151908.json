@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-07-18T15:19:08.588765+00:00",
+  "session_id": "session_20260718_151908",
+  "key": "opencode_session",
+  "data": {
+    "session_id": "ses_08a65dcf9ffeOXdglT4M41LJ0i",
+    "action": "opencode_config_corrected",
+    "description": "Moved opencode.json to project root: scrape-agent/opencode.json"
+  }
+}

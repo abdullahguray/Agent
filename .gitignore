@@ -1,0 +1,24 @@
+# Dependencies
+dashboard/node_modules/
+backend/__pycache__/
+memory/__pycache__/
+*.pyc
+
+# Build output
+dashboard/out/
+dashboard/.next/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Memory backups
+memory/backups/

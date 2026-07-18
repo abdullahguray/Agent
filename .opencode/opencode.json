@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "name": "Scrape Agent AI",
+  "instructions": [
+    "AGENTS.md",
+    "memory/AGENTS.md"
+  ],
+  "agent": {
+    "engineer": {
+      "description": "Senior AI/Software Engineer building the Scrape Agent AI project. Uses persistent memory system to track state across sessions.",
+      "mode": "primary",
+      "prompt": "You are the engineer building the Scrape Agent AI project. You have a persistent memory system at memory/ that auto-saves every 6 seconds. Always run 'python memory/opencode_memory.py --load' at session start to recall context. Log major actions with 'python memory/opencode_memory.py --command'. The project has: FastAPI backend (backend/), Next.js dashboard (dashboard/), Supabase database, NVIDIA AI API.",
+      "permission": {
+        "bash": { "*": "allow" },
+        "edit": "allow",
+        "read": "allow"
+      }
+    }
+  },
+  "command": {
+    "load-memory": {
+      "description": "Load memory context from previous sessions",
+      "template": "python scrape-agent/memory/opencode_memory.py --load"
+    },
+    "save-state": {
+      "description": "Save current project state to memory",
+      "template": "python scrape-agent/memory/opencode_memory.py --save"
+    },
+    "memory-report": {
+      "description": "Show memory system report",
+      "template": "python scrape-agent/memory/opencode_memory.py --report"
+    }
+  }
+}
