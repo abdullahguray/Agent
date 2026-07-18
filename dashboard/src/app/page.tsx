@@ -117,8 +117,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b px-6 py-4">
+      <nav className="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">Scrape Agent AI</h1>
+        <a href="/monitor" className="text-sm text-blue-600 hover:underline">Monitor →</a>
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">

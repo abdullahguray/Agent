@@ -43,6 +43,8 @@ function json(status: number, data: any) {
   return { statusCode: status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
 }
 
+function timer() { const s = Date.now(); return () => Date.now() - s }
+
 async function nvidiaChat(messages: any[], modelId: string, overrides: any = {}) {
   const model = MODEL_REGISTRY.find((m: any) => m.id === modelId) || MODEL_REGISTRY[0]
   const body: any = {
@@ -57,16 +59,20 @@ async function nvidiaChat(messages: any[], modelId: string, overrides: any = {})
   }
   if (model.params?.extra_body) body.extra_body = model.params.extra_body
 
+  const elapsed = timer()
   const res = await fetch(`${nvidiaBaseUrl}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${nvidiaApiKey}` },
     body: JSON.stringify(body)
   })
   if (!res.ok) throw new Error(`NVIDIA API ${res.status}: ${await res.text()}`)
-  return res.json()
+  const data = await res.json()
+  data._responseTime = elapsed()
+  return data
 }
 
 async function scrapeUrl(url: string, selectors?: any) {
+  const elapsed = timer()
   const result: any = { url, title: '', content: '', raw_html: '' }
   try {
     const controller = new AbortController()
@@ -92,6 +98,7 @@ async function scrapeUrl(url: string, selectors?: any) {
   } catch (err: any) {
     result.error = err.message
   }
+  result._scrapeTime = elapsed()
   return result
 }
 
@@ -126,14 +133,17 @@ Rules:
     { temperature: 0.3, max_tokens: 1000 }
   )
 
-  const content = completion.choices?.[0]?.message?.content || ''
+  const rawReasoning = completion.choices?.[0]?.message?.content || ''
+  const content = rawReasoning
   const clean = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')
   try {
     const result = JSON.parse(clean)
     result._model_used = modelId
+    result._plan_time = completion._responseTime
+    result._raw_reasoning = rawReasoning
     return result
   } catch {
-    return { topic_analysis: topic, target_sites: sources.map((s: string) => ({ url: s, purpose: topic, selectors: {} })), extraction_fields: ['title', 'content'], max_items: 5, error: 'Parse failed', _model_used: modelId }
+    return { topic_analysis: topic, target_sites: sources.map((s: string) => ({ url: s, purpose: topic, selectors: {} })), extraction_fields: ['title', 'content'], max_items: 5, error: 'Parse failed', _model_used: modelId, _plan_time: completion._responseTime, _raw_reasoning: rawReasoning }
   }
 }
 
@@ -143,24 +153,39 @@ async function summarize(title: string, content: string, modelId: string) {
     modelId,
     { temperature: 0.2, max_tokens: 300 }
   )
-  return completion.choices?.[0]?.message?.content?.trim() || ''
+  return { text: completion.choices?.[0]?.message?.content?.trim() || '', _responseTime: completion._responseTime }
 }
 
 async function runScrapeCycle(config: any) {
+  const cycleStart = timer()
+  const details: any[] = []
   const modelId = config.model || 'meta/llama-3.3-70b-instruct'
   const topic = config.topic
   const sources = config.sources || []
 
   const currentCycle = (config._current_cycle || 0) + 1
 
+  details.push({ step: 'started', time: cycleStart(), cycle: currentCycle, model: modelId })
+
   const { data: logData } = await supabase.from('task_logs').insert({
     config_id: config.id, cycle_number: currentCycle, status: 'scraping', started_at: new Date().toISOString()
   }).select().single()
   const logId = logData?.id
 
-  const plan = topic ? await generatePlan(topic, sources, modelId) : { target_sites: sources.map((s: string) => ({ url: s, purpose: '', selectors: {} })), max_items: 5 }
+  let plan
+  let planTime = 0
+  let planError: string | null = null
+  try {
+    plan = topic ? await generatePlan(topic, sources, modelId) : { target_sites: sources.map((s: string) => ({ url: s, purpose: '', selectors: {} })), max_items: 5 }
+    planTime = plan._plan_time || 0
+  } catch (err: any) {
+    planError = err.message
+    plan = { target_sites: sources.map((s: string) => ({ url: s, purpose: '', selectors: {} })), max_items: 5 }
+  }
 
   const targetSites = plan.target_sites || []
+  details.push({ step: 'plan_generated', plan_time: planTime, sites_found: targetSites.length, reasoning: (plan._raw_reasoning || '').slice(0, 500), error: planError })
+
   const limit = Math.min(targetSites.length, 10)
   const scrapedItems: any[] = []
   const errors: string[] = []
@@ -168,28 +193,43 @@ async function runScrapeCycle(config: any) {
   for (const site of targetSites.slice(0, limit)) {
     try {
       const result = await scrapeUrl(site.url, site.selectors)
-      if (result.error) { errors.push(result.error); continue }
+      if (result.error) {
+        errors.push(result.error)
+        details.push({ step: 'scrape_error', url: site.url, error: result.error, time: result._scrapeTime })
+        continue
+      }
 
-      let summary = ''
-      if (result.content) { try { summary = await summarize(result.title, result.content, modelId) } catch {} }
+      let summary: any = { text: '', _responseTime: 0 }
+      let summaryTime = 0
+      if (result.content) {
+        try {
+          summary = await summarize(result.title, result.content, modelId)
+          summaryTime = summary._responseTime || 0
+        } catch {}
+      }
+
+      details.push({ step: 'scraped', url: site.url, title: result.title, content_length: result.content?.length || 0, scrape_time: result._scrapeTime, summary_time: summaryTime, content_preview: (result.content || '').slice(0, 200) })
 
       const { data: inserted } = await supabase.from('scraped_data').insert({
         config_id: config.id, title: result.title || '', content: result.content || '', source_url: result.url,
-        raw_json: result, ai_summary: summary, model_used: modelId
+        raw_json: result, ai_summary: summary.text, model_used: modelId
       }).select().single()
       if (inserted) scrapedItems.push(inserted)
     } catch (err: any) { errors.push(`${site.url}: ${err.message}`) }
   }
 
+  const totalTime = cycleStart()
+
   if (logId) {
     await supabase.from('task_logs').update({
       status: errors.length && !scrapedItems.length ? 'error' : 'completed',
       ended_at: new Date().toISOString(), items_scraped: scrapedItems.length,
-      error: errors.slice(0, 3).join('; ') || null
+      error: errors.slice(0, 3).join('; ') || null,
+      details: { total_time: totalTime, steps: details, sites_scraped: scrapedItems.length, errors: errors.length }
     }).eq('id', logId)
   }
 
-  return { config_id: config.id, topic, model_used: modelId, items_scraped: scrapedItems.length, errors: errors.slice(0, 5), status: errors.length && !scrapedItems.length ? 'error' : 'completed' }
+  return { config_id: config.id, topic, model_used: modelId, items_scraped: scrapedItems.length, errors: errors.slice(0, 5), status: errors.length && !scrapedItems.length ? 'error' : 'completed', total_time: totalTime, cycle: currentCycle }
 }
 
 export const handler: any = async (event: any) => {
@@ -268,6 +308,21 @@ export const handler: any = async (event: any) => {
       return json(200, { data: data || [] })
     }
 
+    if (segments[0] === 'task-logs' && segments[1]) {
+      const { data } = await supabase.from('task_logs').select('*').eq('id', segments[1]).single()
+      return json(200, { data: data || null })
+    }
+
+    if (path === 'system/status') {
+      const { count: configCount } = await supabase.from('configurations').select('*', { count: 'exact', head: true })
+      const { count: activeCount } = await supabase.from('configurations').select('*', { count: 'exact', head: true }).eq('status', 'active')
+      const { count: scrapedCount } = await supabase.from('scraped_data').select('*', { count: 'exact', head: true })
+      const { data: lastLogs } = await supabase.from('task_logs').select('*').order('started_at', { ascending: false }).limit(5)
+      const { count: logCount } = await supabase.from('task_logs').select('*', { count: 'exact', head: true })
+      const lastRun = lastLogs?.[0]?.started_at || null
+      return json(200, { data: { configs: configCount || 0, active_configs: activeCount || 0, total_scraped: scrapedCount || 0, total_logs: logCount || 0, last_run: lastRun, recent_logs: lastLogs || [] } })
+    }
+
     if (path === 'scrape' && method === 'POST') {
       const body = JSON.parse(event.body || '{}')
       if (body.configId) {
@@ -286,9 +341,9 @@ export const handler: any = async (event: any) => {
           try {
             const result = await scrapeUrl(site.url, site.selectors)
             if (result.error) { errors.push(result.error); continue }
-            let summary = ''
+            let summary: any = { text: '', _responseTime: 0 }
             if (result.content) { try { summary = await summarize(result.title, result.content, body.modelId || 'meta/llama-3.3-70b-instruct') } catch {} }
-            results.push({ ...result, ai_summary: summary })
+            results.push({ ...result, ai_summary: summary.text })
           } catch (err: any) { errors.push(err.message) }
         }
         return json(200, { data: { results, errors: errors.slice(0, 3), status: errors.length && !results.length ? 'error' : 'completed' } })
