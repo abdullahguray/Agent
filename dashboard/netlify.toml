@@ -1,7 +1,16 @@
 [build]
   base = "dashboard"
   command = "npm run build"
-  publish = ".next"
+  publish = "out"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
 
 [[redirects]]
   from = "/*"
