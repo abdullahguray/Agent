@@ -1,7 +1,7 @@
 [build]
   base = "dashboard"
   command = "npm run build"
-  publish = "out"
+  publish = ".next"
 
 [[redirects]]
   from = "/*"

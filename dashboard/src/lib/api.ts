@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_BASE_URL = ''
 
 async function fetchAPI(endpoint: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -18,9 +18,11 @@ export const api = {
   getScrapedData: (configId?: string) => fetchAPI(`/api/scraped-data?${configId ? `config_id=${configId}` : ''}`),
   getTaskLogs: (configId?: string) => fetchAPI(`/api/task-logs?${configId ? `config_id=${configId}` : ''}`),
   planScrape: (topic: string, sources?: string[], model?: string) => {
-    let url = `/api/plan?topic=${encodeURIComponent(topic)}`
-    if (sources?.length) url += `&sources=${encodeURIComponent(JSON.stringify(sources))}`
-    if (model) url += `&model=${encodeURIComponent(model)}`
-    return fetchAPI(url, { method: 'POST' })
+    return fetchAPI('/api/plan', {
+      method: 'POST',
+      body: JSON.stringify({ topic, sources, model })
+    })
   },
+  triggerScrape: (data: { configId?: string; topic?: string; sources?: string[]; modelId?: string }) =>
+    fetchAPI('/api/scrape', { method: 'POST', body: JSON.stringify(data) }),
 }
