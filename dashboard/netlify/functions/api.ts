@@ -365,6 +365,33 @@ export const handler: any = async (event: any) => {
       return json(200, { data: { processed: results.length, results } })
     }
 
+    if (path === 'chat' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}')
+      const { model, message, history } = body
+      if (!message) return json(400, { error: 'message is required' })
+
+      const modelId = model || 'meta/llama-3.3-70b-instruct'
+      const messages = [
+        { role: 'system', content: 'You are a helpful AI assistant. Answer clearly and concisely. Reply in the same language the user writes in.' },
+        ...(history || []),
+        { role: 'user', content: message }
+      ]
+
+      const elapsed = timer()
+      const data = await nvidiaChat(messages, modelId, { max_tokens: 2048 })
+      const responseTime = elapsed()
+      const reply = data.choices?.[0]?.message?.content || 'No response'
+
+      return json(200, {
+        data: {
+          reply,
+          model: modelId,
+          response_time_ms: responseTime,
+          usage: data.usage
+        }
+      })
+    }
+
     return json(404, { error: `Route not found: ${path}` })
   } catch (err: any) {
     return json(500, { error: err.message || 'Internal error' })

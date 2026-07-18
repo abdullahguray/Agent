@@ -131,7 +131,10 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">Scrape Agent AI</h1>
-        <a href="/monitor" className="text-sm text-blue-600 hover:underline">Monitor →</a>
+        <div className="flex items-center gap-4">
+          <a href="/chat" className="text-sm text-green-600 hover:underline font-medium">Chat →</a>
+          <a href="/monitor" className="text-sm text-blue-600 hover:underline">Monitor →</a>
+        </div>
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
