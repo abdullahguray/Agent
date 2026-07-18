@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
 
 type ModelInfo = {
@@ -39,7 +38,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null)
   const [configs, setConfigs] = useState<Config[]>([])
   const [models, setModels] = useState<ModelInfo[]>([])
   const [topic, setTopic] = useState('')
@@ -52,36 +50,15 @@ export default function Home() {
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-    })
-  }, [])
-
   const loadConfigs = async () => {
-    try {
-      const res = await api.getConfigs()
-      setConfigs(res.data || [])
-    } catch (e) { console.error(e) }
+    try { const res = await api.getConfigs(); setConfigs(res.data || []) } catch (e) { console.error(e) }
   }
 
   const loadModels = async () => {
-    try {
-      const res = await api.getModels()
-      setModels(res.data || [])
-    } catch (e) { console.error(e) }
+    try { const res = await api.getModels(); setModels(res.data || []) } catch (e) { console.error(e) }
   }
 
-  useEffect(() => { if (user) { loadConfigs(); loadModels() } }, [user])
-
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'github' })
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-  }
+  useEffect(() => { loadConfigs(); loadModels() }, [])
 
   const handleCreateConfig = async () => {
     if (!topic.trim()) return
@@ -89,9 +66,7 @@ export default function Home() {
     try {
       const sourcesList = sources.split(',').map(s => s.trim()).filter(Boolean)
       await api.createConfig({ topic, sources: sourcesList, model: selectedModel })
-      setTopic('')
-      setSources('')
-      setSelectedModel('meta/llama-3.3-70b-instruct')
+      setTopic(''); setSources(''); setSelectedModel('meta/llama-3.3-70b-instruct')
       await loadConfigs()
     } catch (e) { console.error(e) }
     setLoading(false)
@@ -140,32 +115,13 @@ export default function Home() {
 
   const selectedModelInfo = models.find(m => m.id === selectedModel)
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Scrape Agent AI</h1>
-          <p className="text-gray-600 mb-8">Multi-model AI web scraping agent with 3min work/sleep cycles</p>
-          <button onClick={handleLogin} className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800">
-            Sign in with GitHub
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen">
-      <nav className="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm border-b px-6 py-4">
         <h1 className="text-xl font-bold">Scrape Agent AI</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user.email}</span>
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">Logout</button>
-        </div>
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Create Config */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">New Scraping Configuration</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -254,7 +210,6 @@ export default function Home() {
           <p className="text-xs text-gray-500 mt-2">Schedule: 3min work → 3min sleep → repeat (24/7) | {models.length} models available</p>
         </div>
 
-        {/* Configs List */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
             <h2 className="text-lg font-semibold mb-3">Configurations</h2>
@@ -294,7 +249,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Details Panel */}
           <div className="lg:col-span-2">
             {selectedConfig ? (
               <>
