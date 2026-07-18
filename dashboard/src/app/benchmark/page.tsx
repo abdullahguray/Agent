@@ -89,7 +89,8 @@ export default function BenchmarkPage() {
   async function handleBenchmark() {
     if (!question.trim() || selectedModels.size === 0 || loading) return
 
-    const pendingResults: BenchmarkResult[] = Array.from(selectedModels).map(id => ({
+    const modelIds = Array.from(selectedModels)
+    const pendingResults: BenchmarkResult[] = modelIds.map(id => ({
       model_id: id,
       model_name: MODELS.find(m => m.id === id)?.name || id.split('/').pop() || '',
       category: MODELS.find(m => m.id === id)?.category || 'unknown',
@@ -98,20 +99,43 @@ export default function BenchmarkPage() {
     setResults(pendingResults)
     setLoading(true)
 
-    try {
-      const res = await fetch('/api/benchmark', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: question, models: Array.from(selectedModels) })
+    let completed = 0
+    await Promise.allSettled(
+      modelIds.map(async (id) => {
+        const start = Date.now()
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: id, message: question })
+          })
+          const json = await res.json()
+          if (json.error) throw new Error(json.error)
+          const time = Date.now() - start
+          setResults(prev => {
+            const updated = prev.map(r =>
+              r.model_id === id
+                ? { ...r, status: 'success' as const, reply: json.data.reply, response_time_ms: time, usage: json.data.usage }
+                : r
+            )
+            return updated.sort((a, b) => (a.response_time_ms ?? Infinity) - (b.response_time_ms ?? Infinity))
+          })
+        } catch (err: any) {
+          const time = Date.now() - start
+          setResults(prev => {
+            const updated = prev.map(r =>
+              r.model_id === id
+                ? { ...r, status: 'error' as const, error: err.message, response_time_ms: time }
+                : r
+            )
+            return updated.sort((a, b) => (a.response_time_ms ?? Infinity) - (b.response_time_ms ?? Infinity))
+          })
+        } finally {
+          completed++
+          if (completed === modelIds.length) setLoading(false)
+        }
       })
-      const json = await res.json()
-      if (json.error) throw new Error(json.error)
-      setResults(json.data.results)
-    } catch (err: any) {
-      setResults(prev => prev.map(r => r.status === 'pending' ? { ...r, status: 'error' as const, error: err.message } : r))
-    } finally {
-      setLoading(false)
-    }
+    )
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -121,7 +145,8 @@ export default function BenchmarkPage() {
     }
   }
 
-  function formatTime(ms: number) {
+  function formatTime(ms?: number) {
+    if (ms === undefined || ms === null) return '—'
     if (ms < 1000) return `${ms}ms`
     return `${(ms / 1000).toFixed(1)}s`
   }
