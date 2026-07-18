@@ -220,7 +220,7 @@ export const handler: any = async (event: any) => {
       if (method === 'POST') {
         const body = JSON.parse(event.body || '{}')
         const { data, error } = await supabase.from('configurations').insert({
-          user_id: body.user_id || '00000000-0000-0000-0000-000000000000', topic: body.topic, sources: body.sources || [],
+          user_id: body.user_id || null, topic: body.topic, sources: body.sources || [],
           model: body.model || 'meta/llama-3.3-70b-instruct',
           schedule: body.schedule || { work_min: 3, sleep_min: 3 }, status: body.status || 'active'
         }).select().single()
