@@ -392,6 +392,55 @@ export const handler: any = async (event: any) => {
       })
     }
 
+    if (path === 'benchmark' && method === 'POST') {
+      const body = JSON.parse(event.body || '{}')
+      const { message, models: modelIds } = body
+      if (!message) return json(400, { error: 'message is required' })
+      if (!modelIds?.length) return json(400, { error: 'models array is required' })
+
+      const messages = [
+        { role: 'system', content: 'You are a helpful AI assistant. Answer clearly and concisely. Reply in the same language the user writes in.' },
+        { role: 'user', content: message }
+      ]
+
+      const results = await Promise.allSettled(
+        modelIds.map(async (modelId: string) => {
+          const elapsed = timer()
+          try {
+            const data = await nvidiaChat(messages, modelId, { max_tokens: 2048 })
+            const responseTime = elapsed()
+            const reply = data.choices?.[0]?.message?.content || 'No response'
+            const modelInfo = MODEL_REGISTRY.find((m: any) => m.id === modelId)
+            return {
+              model_id: modelId,
+              model_name: modelInfo?.name || modelId.split('/').pop(),
+              category: modelInfo?.category || 'unknown',
+              status: 'success' as const,
+              reply,
+              response_time_ms: responseTime,
+              usage: data.usage,
+            }
+          } catch (err: any) {
+            return {
+              model_id: modelId,
+              model_name: (MODEL_REGISTRY.find((m: any) => m.id === modelId)?.name || modelId.split('/').pop()),
+              category: MODEL_REGISTRY.find((m: any) => m.id === modelId)?.category || 'unknown',
+              status: 'error' as const,
+              reply: '',
+              error: err.message,
+              response_time_ms: elapsed(),
+            }
+          }
+        })
+      )
+
+      const sorted = results
+        .map(r => r.status === 'fulfilled' ? r.value : { model_id: 'unknown', model_name: 'Unknown', category: 'unknown', status: 'error' as const, reply: '', error: 'Promise rejected', response_time_ms: 0 })
+        .sort((a, b) => a.response_time_ms - b.response_time_ms)
+
+      return json(200, { data: { results: sorted, question: message } })
+    }
+
     return json(404, { error: `Route not found: ${path}` })
   } catch (err: any) {
     return json(500, { error: err.message || 'Internal error' })

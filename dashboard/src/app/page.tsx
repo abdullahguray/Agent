@@ -133,6 +133,7 @@ export default function Home() {
         <h1 className="text-xl font-bold">Scrape Agent AI</h1>
         <div className="flex items-center gap-4">
           <a href="/chat" className="text-sm text-green-600 hover:underline font-medium">Chat →</a>
+          <a href="/benchmark" className="text-sm text-orange-600 hover:underline font-medium">Benchmark →</a>
           <a href="/monitor" className="text-sm text-blue-600 hover:underline">Monitor →</a>
         </div>
       </nav>

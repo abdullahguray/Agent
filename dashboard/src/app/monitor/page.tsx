@@ -238,6 +238,9 @@ export default function MonitorPage() {
           <a href="/chat" className="text-gray-400 hover:text-white text-sm">
             Chat →
           </a>
+          <a href="/benchmark" className="text-gray-400 hover:text-white text-sm">
+            Benchmark →
+          </a>
           <h1 className="text-xl font-bold">System Monitor</h1>
         </div>
         <div className="flex items-center gap-4">
