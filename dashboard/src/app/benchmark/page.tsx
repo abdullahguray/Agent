@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import ModelCardModal from '@/components/ModelCardModal'
 
 const MODELS = [
   { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek V4 Flash', category: 'reasoning' },
@@ -59,6 +60,7 @@ export default function BenchmarkPage() {
   const [results, setResults] = useState<BenchmarkResult[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedReply, setExpandedReply] = useState<string | null>(null)
+  const [cardModalId, setCardModalId] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const availableModels = MODELS.filter(m => !m.unavailable)
@@ -213,7 +215,17 @@ export default function BenchmarkPage() {
                       onChange={() => toggleModel(m.id)}
                       className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="truncate text-xs">{m.name}</span>
+                    <span className="truncate text-xs flex-1">{m.name}</span>
+                    <button
+                      type="button"
+                      onClick={e => { e.preventDefault(); e.stopPropagation(); setCardModalId(m.id) }}
+                      className="shrink-0 text-gray-300 hover:text-blue-500 transition"
+                      title="Model info"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
                     {m.unavailable && (
                       <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">
                         unavailable
@@ -377,6 +389,8 @@ export default function BenchmarkPage() {
           </div>
         </div>
       </div>
+
+      <ModelCardModal modelId={cardModalId} onClose={() => setCardModalId(null)} />
     </div>
   )
 }

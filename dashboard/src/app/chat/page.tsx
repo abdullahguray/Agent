@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import ModelCardModal from '@/components/ModelCardModal'
 
 const MODELS = [
   { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek V4 Flash', category: 'reasoning', supportsThinking: true },
@@ -174,6 +175,7 @@ export default function ChatPage() {
   const [deepThink, setDeepThink] = useState(false)
   const [search, setSearch] = useState(true)
   const [attachments, setAttachments] = useState<{ name: string; type: string; size: number; preview?: string }[]>([])
+  const [cardModalId, setCardModalId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -333,6 +335,16 @@ export default function ChatPage() {
           <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[currentModel?.category || 'balanced']}`}>
             {currentModel?.category}
           </span>
+          <button
+            type="button"
+            onClick={() => setCardModalId(selectedModel)}
+            className="text-gray-300 hover:text-blue-500 transition"
+            title="Model info"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
         </div>
       </nav>
 
@@ -538,6 +550,8 @@ export default function ChatPage() {
           <p className="text-center text-xs text-gray-300 mt-2">AI can make mistakes. Verify important information.</p>
         </div>
       </div>
+
+      <ModelCardModal modelId={cardModalId} onClose={() => setCardModalId(null)} />
     </div>
   )
 }
