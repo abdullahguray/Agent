@@ -4,28 +4,28 @@ import { useState, useRef } from 'react'
 
 const MODELS = [
   { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek V4 Flash', category: 'reasoning' },
-  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning' },
+  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning', unavailable: true },
   { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron 3 Ultra 550B', category: 'reasoning' },
   { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron 3 Super 120B', category: 'reasoning' },
   { id: 'nvidia/nemotron-3-nano-30b-a3b', name: 'Nemotron 3 Nano 30B', category: 'reasoning' },
-  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning' },
+  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning', unavailable: true },
   { id: 'stepfun-ai/step-3.7-flash', name: 'Step 3.7 Flash', category: 'reasoning' },
   { id: 'stepfun-ai/step-3.5-flash', name: 'Step 3.5 Flash', category: 'reasoning' },
   { id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5', name: 'Llama 3.3 Nemotron Super 49B', category: 'balanced' },
   { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', category: 'balanced' },
   { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', category: 'balanced' },
-  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced' },
+  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced', unavailable: true },
   { id: 'minimaxai/minimax-m3', name: 'MiniMax M3', category: 'balanced' },
   { id: 'minimaxai/minimax-m2.7', name: 'MiniMax M2.7', category: 'balanced' },
   { id: 'qwen/qwen3.5-122b-a10b', name: 'Qwen 3.5 122B', category: 'balanced' },
-  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced' },
+  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced', unavailable: true },
   { id: 'qwen/qwen3-next-80b-a3b-instruct', name: 'Qwen 3 Next 80B', category: 'balanced' },
   { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', category: 'balanced' },
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', category: 'balanced' },
-  { id: 'poolside/laguna-xs-2.1', name: 'Laguna XS 2.1', category: 'balanced' },
+  { id: 'poolside/laguna-xs-2.1', name: 'Poolside Laguna XS 2.1', category: 'balanced' },
   { id: 'z-ai/glm-5.2', name: 'GLM 5.2', category: 'balanced' },
-  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast' },
-  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast' },
+  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast', unavailable: true },
+  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast', unavailable: true },
   { id: 'meta/llama-3.2-3b-instruct', name: 'Llama 3.2 3B', category: 'fast' },
   { id: 'google/gemma-3n-e4b-it', name: 'Gemma 3N E4B', category: 'fast' },
   { id: 'meta/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B Vision', category: 'vision' },
@@ -53,13 +53,16 @@ const rankColors = ['text-amber-500', 'text-gray-400', 'text-amber-700']
 
 export default function BenchmarkPage() {
   const [question, setQuestion] = useState('')
-  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set(MODELS.map(m => m.id)))
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(
+    new Set(MODELS.filter(m => !m.unavailable).map(m => m.id))
+  )
   const [results, setResults] = useState<BenchmarkResult[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedReply, setExpandedReply] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const allSelected = selectedModels.size === MODELS.length
+  const availableModels = MODELS.filter(m => !m.unavailable)
+  const allSelected = availableModels.every(m => selectedModels.has(m.id))
 
   function toggleModel(id: string) {
     setSelectedModels(prev => {
@@ -74,14 +77,14 @@ export default function BenchmarkPage() {
     if (allSelected) {
       setSelectedModels(new Set())
     } else {
-      setSelectedModels(new Set(MODELS.map(m => m.id)))
+      setSelectedModels(new Set(availableModels.map(m => m.id)))
     }
   }
 
   function selectCategory(cat: string) {
     setSelectedModels(prev => {
       const next = new Set(prev)
-      MODELS.filter(m => m.category === cat).forEach(m => next.add(m.id))
+      MODELS.filter(m => m.category === cat && !m.unavailable).forEach(m => next.add(m.id))
       return next
     })
   }
@@ -162,7 +165,7 @@ export default function BenchmarkPage() {
           <div className="h-5 w-px bg-gray-200" />
           <h1 className="text-lg font-semibold text-gray-800">Model Benchmark</h1>
         </div>
-        <span className="text-sm text-gray-500">{selectedModels.size} of {MODELS.length} models selected</span>
+        <span className="text-sm text-gray-500">{selectedModels.size} of {availableModels.length} available models selected</span>
       </nav>
 
       <div className="max-w-7xl mx-auto p-6">
@@ -211,9 +214,16 @@ export default function BenchmarkPage() {
                       className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="truncate text-xs">{m.name}</span>
-                    <span className={`ml-auto text-[9px] px-1.5 py-0.5 rounded-full ${categoryColors[m.category]}`}>
-                      {m.category}
-                    </span>
+                    {m.unavailable && (
+                      <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">
+                        unavailable
+                      </span>
+                    )}
+                    {!m.unavailable && (
+                      <span className={`ml-auto text-[9px] px-1.5 py-0.5 rounded-full ${categoryColors[m.category]}`}>
+                        {m.category}
+                      </span>
+                    )}
                   </label>
                 ))}
               </div>
@@ -306,10 +316,10 @@ export default function BenchmarkPage() {
                               </div>
                             ) : (
                               <span className={`font-mono text-sm font-semibold ${
-                                r.response_time_ms! < 3000 ? 'text-green-600' :
-                                r.response_time_ms! < 8000 ? 'text-amber-600' : 'text-red-500'
+                                (r.response_time_ms ?? 0) < 3000 ? 'text-green-600' :
+                                (r.response_time_ms ?? 0) < 8000 ? 'text-amber-600' : 'text-red-500'
                               }`}>
-                                {formatTime(r.response_time_ms!)}
+                                {formatTime(r.response_time_ms)}
                               </span>
                             )}
                           </td>

@@ -12,28 +12,28 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 const MODEL_REGISTRY: any[] = [
   { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek V4 Flash', category: 'reasoning', provider: 'DeepSeek', capabilities: ['planning', 'reasoning', 'thinking', 'analysis'], supports_thinking: true, recommended_for: 'planning' },
-  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning', provider: 'DeepSeek', capabilities: ['planning', 'reasoning', 'analysis'], supports_thinking: true, recommended_for: 'planning' },
+  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning', provider: 'DeepSeek', capabilities: ['planning', 'reasoning', 'analysis'], supports_thinking: true, recommended_for: 'planning', unavailable: true },
   { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron 3 Ultra 550B', category: 'reasoning', provider: 'NVIDIA', capabilities: ['planning', 'reasoning', 'thinking', 'analysis'], supports_thinking: true, recommended_for: 'deep_analysis' },
   { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron 3 Super 120B', category: 'reasoning', provider: 'NVIDIA', capabilities: ['planning', 'reasoning', 'thinking'], supports_thinking: true },
   { id: 'nvidia/nemotron-3-nano-30b-a3b', name: 'Nemotron 3 Nano 30B', category: 'reasoning', provider: 'NVIDIA', capabilities: ['reasoning', 'thinking'], supports_thinking: true, recommended_for: 'fast_reasoning' },
-  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning', provider: 'Google', capabilities: ['planning', 'reasoning', 'thinking'], supports_thinking: true },
+  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning', provider: 'Google', capabilities: ['planning', 'reasoning', 'thinking'], supports_thinking: true, unavailable: true },
   { id: 'stepfun-ai/step-3.7-flash', name: 'Step 3.7 Flash', category: 'reasoning', provider: 'StepFun', capabilities: ['planning', 'reasoning'] },
   { id: 'stepfun-ai/step-3.5-flash', name: 'Step 3.5 Flash', category: 'reasoning', provider: 'StepFun', capabilities: ['planning', 'reasoning'] },
   { id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5', name: 'Llama 3.3 Nemotron Super 49B', category: 'balanced', provider: 'NVIDIA', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'summarization' },
   { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', category: 'balanced', provider: 'Meta', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'planning' },
   { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', category: 'balanced', provider: 'Meta', capabilities: ['planning', 'analysis', 'summarization'] },
-  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced', provider: 'Moonshot', capabilities: ['planning', 'analysis'] },
+  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced', provider: 'Moonshot', capabilities: ['planning', 'analysis'], unavailable: true },
   { id: 'minimaxai/minimax-m3', name: 'MiniMax M3', category: 'balanced', provider: 'MiniMax', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'general' },
   { id: 'minimaxai/minimax-m2.7', name: 'MiniMax M2.7', category: 'balanced', provider: 'MiniMax', capabilities: ['planning', 'summarization'] },
   { id: 'qwen/qwen3.5-122b-a10b', name: 'Qwen 3.5 122B', category: 'balanced', provider: 'Qwen', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'cheap_planning' },
-  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced', provider: 'Qwen', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'high_quality' },
+  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced', provider: 'Qwen', capabilities: ['planning', 'analysis', 'summarization'], recommended_for: 'high_quality', unavailable: true },
   { id: 'qwen/qwen3-next-80b-a3b-instruct', name: 'Qwen 3 Next 80B', category: 'balanced', provider: 'Qwen', capabilities: ['planning', 'summarization'] },
   { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', category: 'balanced', provider: 'OpenAI', capabilities: ['planning', 'analysis'] },
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', category: 'balanced', provider: 'OpenAI', capabilities: ['planning', 'analysis', 'reasoning'] },
   { id: 'poolside/laguna-xs-2.1', name: 'Laguna XS 2.1', category: 'balanced', provider: 'Poolside', capabilities: ['planning', 'analysis'] },
   { id: 'z-ai/glm-5.2', name: 'GLM 5.2', category: 'balanced', provider: 'Z-AI', capabilities: ['planning', 'analysis'] },
-  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast', provider: 'Meta', capabilities: ['planning', 'summarization'], recommended_for: 'fast_planning' },
-  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast', provider: 'Meta', capabilities: ['simple_tasks'] },
+  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast', provider: 'Meta', capabilities: ['planning', 'summarization'], recommended_for: 'fast_planning', unavailable: true },
+  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast', provider: 'Meta', capabilities: ['simple_tasks'], unavailable: true },
   { id: 'meta/llama-3.2-3b-instruct', name: 'Llama 3.2 3B', category: 'fast', provider: 'Meta', capabilities: ['simple_tasks', 'summarization'] },
   { id: 'google/gemma-3n-e4b-it', name: 'Gemma 3N E4B', category: 'fast', provider: 'Google', capabilities: ['simple_tasks', 'summarization'] },
   { id: 'meta/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B Vision', category: 'vision', provider: 'Meta', capabilities: ['vision', 'analysis'] }
@@ -159,7 +159,11 @@ async function summarize(title: string, content: string, modelId: string) {
 async function runScrapeCycle(config: any) {
   const cycleStart = timer()
   const details: any[] = []
-  const modelId = config.model || 'meta/llama-3.3-70b-instruct'
+  let modelId = config.model || 'meta/llama-3.3-70b-instruct'
+  const modelInfo = MODEL_REGISTRY.find((m: any) => m.id === modelId)
+  if (modelInfo?.unavailable) {
+    modelId = 'meta/llama-3.1-70b-instruct'
+  }
   const topic = config.topic
   const sources = config.sources || []
 

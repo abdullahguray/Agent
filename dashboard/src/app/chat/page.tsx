@@ -4,28 +4,28 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 
 const MODELS = [
   { id: 'deepseek-ai/deepseek-v4-flash', name: 'DeepSeek V4 Flash', category: 'reasoning', supportsThinking: true },
-  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning', supportsThinking: true },
+  { id: 'deepseek-ai/deepseek-v4-pro', name: 'DeepSeek V4 Pro', category: 'reasoning', supportsThinking: true, unavailable: true },
   { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron 3 Ultra 550B', category: 'reasoning', supportsThinking: true },
   { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron 3 Super 120B', category: 'reasoning', supportsThinking: true },
   { id: 'nvidia/nemotron-3-nano-30b-a3b', name: 'Nemotron 3 Nano 30B', category: 'reasoning', supportsThinking: true },
-  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning', supportsThinking: true },
+  { id: 'google/gemma-4-31b-it', name: 'Gemma 4 31B IT', category: 'reasoning', supportsThinking: true, unavailable: true },
   { id: 'stepfun-ai/step-3.7-flash', name: 'Step 3.7 Flash', category: 'reasoning', supportsThinking: false },
   { id: 'stepfun-ai/step-3.5-flash', name: 'Step 3.5 Flash', category: 'reasoning', supportsThinking: false },
   { id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5', name: 'Llama 3.3 Nemotron Super 49B', category: 'balanced', supportsThinking: false },
   { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', category: 'balanced', supportsThinking: false },
   { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', category: 'balanced', supportsThinking: false },
-  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced', supportsThinking: false },
+  { id: 'moonshotai/kimi-k2.6', name: 'Kimi K2.6', category: 'balanced', supportsThinking: false, unavailable: true },
   { id: 'minimaxai/minimax-m3', name: 'MiniMax M3', category: 'balanced', supportsThinking: false },
   { id: 'minimaxai/minimax-m2.7', name: 'MiniMax M2.7', category: 'balanced', supportsThinking: false },
   { id: 'qwen/qwen3.5-122b-a10b', name: 'Qwen 3.5 122B', category: 'balanced', supportsThinking: false },
-  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced', supportsThinking: false },
+  { id: 'qwen/qwen3.5-397b-a17b', name: 'Qwen 3.5 397B', category: 'balanced', supportsThinking: false, unavailable: true },
   { id: 'qwen/qwen3-next-80b-a3b-instruct', name: 'Qwen 3 Next 80B', category: 'balanced', supportsThinking: false },
   { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', category: 'balanced', supportsThinking: false },
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', category: 'balanced', supportsThinking: false },
-  { id: 'poolside/laguna-xs-2.1', name: 'Laguna XS 2.1', category: 'balanced', supportsThinking: false },
+  { id: 'poolside/laguna-xs-2.1', name: 'Poolside Laguna XS 2.1', category: 'balanced', supportsThinking: false },
   { id: 'z-ai/glm-5.2', name: 'GLM 5.2', category: 'balanced', supportsThinking: false },
-  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast', supportsThinking: false },
-  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast', supportsThinking: false },
+  { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', category: 'fast', supportsThinking: false, unavailable: true },
+  { id: 'meta/llama-3.2-1b-instruct', name: 'Llama 3.2 1B', category: 'fast', supportsThinking: false, unavailable: true },
   { id: 'meta/llama-3.2-3b-instruct', name: 'Llama 3.2 3B', category: 'fast', supportsThinking: false },
   { id: 'google/gemma-3n-e4b-it', name: 'Gemma 3N E4B', category: 'fast', supportsThinking: false },
   { id: 'meta/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B Vision', category: 'vision', supportsThinking: false, supportsVision: true },
@@ -320,9 +320,16 @@ export default function ChatPage() {
             className="bg-white text-gray-700 text-sm rounded-lg px-3 py-2 border border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none max-w-[280px]"
           >
             {MODELS.map(m => (
-              <option key={m.id} value={m.id}>{m.name}</option>
+              <option key={m.id} value={m.id} disabled={m.unavailable}>
+                {m.name}{m.unavailable ? ' (unavailable)' : ''}
+              </option>
             ))}
           </select>
+          {currentModel?.unavailable && (
+            <span className="text-xs px-2 py-1 rounded-full border bg-red-50 text-red-600 border-red-200">
+              unavailable
+            </span>
+          )}
           <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[currentModel?.category || 'balanced']}`}>
             {currentModel?.category}
           </span>
