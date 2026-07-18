@@ -180,7 +180,7 @@ export default function MonitorPage() {
           fetchTaskLogs(selectedConfigId)
           fetchScrapedData(selectedConfigId)
         }
-      }, 10000)
+      }, 5000)
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -518,49 +518,60 @@ export default function MonitorPage() {
 
                     {/* Data Tab */}
                     {activeTab === 'data' && (
-                      <div className="space-y-4">
+                      <div>
                         {scrapedData.length === 0 && (
                           <p className="text-sm text-gray-500 text-center py-8">No data scraped yet.</p>
                         )}
-                        {scrapedData.map(item => (
-                          <div
-                            key={item.id}
-                            className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-semibold text-gray-900">{item.title || 'Untitled'}</h4>
-                              <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
-                                {relativeTime(item.scraped_at)}
-                              </span>
-                            </div>
-
-                            {item.ai_summary && (
-                              <p className="text-sm text-gray-600 mb-2 line-clamp-3">{item.ai_summary}</p>
-                            )}
-
-                            {!item.ai_summary && item.content && (
-                              <p className="text-sm text-gray-600 mb-2 line-clamp-3">{item.content.slice(0, 300)}...</p>
-                            )}
-
-                            <div className="flex items-center gap-3 flex-wrap">
-                              {item.source_url && (
-                                <a
-                                  href={item.source_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-600 hover:underline truncate max-w-[300px]"
-                                >
-                                  {item.source_url}
-                                </a>
-                              )}
-                              {item.model_used && (
-                                <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
-                                  {item.model_used?.split('/').pop()}
-                                </span>
-                              )}
-                            </div>
+                        {scrapedData.length > 0 && (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b border-gray-200 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                  <th className="pb-2 pr-4">Title</th>
+                                  <th className="pb-2 pr-4">Source</th>
+                                  <th className="pb-2 pr-4">AI Summary</th>
+                                  <th className="pb-2 pr-4">Model</th>
+                                  <th className="pb-2">Time</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                {scrapedData.map(item => (
+                                  <tr key={item.id} className="hover:bg-gray-50 transition">
+                                    <td className="py-3 pr-4 font-medium text-gray-900 max-w-[220px] truncate" title={item.title || 'Untitled'}>
+                                      {item.title || 'Untitled'}
+                                    </td>
+                                    <td className="py-3 pr-4">
+                                      {item.source_url ? (
+                                        <a
+                                          href={item.source_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline truncate block max-w-[200px]"
+                                          title={item.source_url}
+                                        >
+                                          {new URL(item.source_url).hostname}
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-400">—</span>
+                                      )}
+                                    </td>
+                                    <td className="py-3 pr-4 text-gray-600 max-w-[360px] truncate" title={item.ai_summary || item.content?.slice(0, 200)}>
+                                      {item.ai_summary || (item.content ? item.content.slice(0, 120) + '...' : '—')}
+                                    </td>
+                                    <td className="py-3 pr-4">
+                                      <span className="bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        {item.model_used?.split('/').pop() || '—'}
+                                      </span>
+                                    </td>
+                                    <td className="py-3 text-gray-400 text-xs whitespace-nowrap">
+                                      {relativeTime(item.scraped_at)}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
 

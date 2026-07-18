@@ -49,6 +49,7 @@ export default function Home() {
   const [scrapedData, setScrapedData] = useState<any[]>([])
   const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [scraping, setScraping] = useState<string | null>(null)
 
   const loadConfigs = async () => {
     try { const res = await api.getConfigs(); setConfigs(res.data || []) } catch (e) { console.error(e) }
@@ -65,11 +66,22 @@ export default function Home() {
     setLoading(true)
     try {
       const sourcesList = sources.split(',').map(s => s.trim()).filter(Boolean)
-      await api.createConfig({ topic, sources: sourcesList, model: selectedModel })
+      const res = await api.createConfig({ topic, sources: sourcesList, model: selectedModel })
       setTopic(''); setSources(''); setSelectedModel('meta/llama-3.3-70b-instruct')
       await loadConfigs()
+      if (res.data?.id) {
+        setScraping(res.data.id)
+        api.triggerScrape({ configId: res.data.id }).catch(() => {})
+        setTimeout(() => { setScraping(null); loadConfigs() }, 35000)
+      }
     } catch (e) { console.error(e) }
     setLoading(false)
+  }
+
+  const handleManualScrape = async (configId: string) => {
+    setScraping(configId)
+    try { await api.triggerScrape({ configId }) } catch {}
+    setTimeout(() => { setScraping(null); loadConfigs() }, 35000)
   }
 
   const handleToggleStatus = async (config: Config) => {
@@ -236,12 +248,20 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="flex gap-2">
+                      {scraping === c.id ? (
+                        <span className="text-xs text-yellow-600 animate-pulse">Scraping...</span>
+                      ) : (
+                        <button onClick={e => { e.stopPropagation(); handleManualScrape(c.id) }} className="text-xs text-green-600 hover:underline">
+                          Scrape Now
+                        </button>
+                      )}
                       <button onClick={e => { e.stopPropagation(); handleToggleStatus(c) }} className="text-xs text-blue-600 hover:underline">
                         {c.status === 'active' ? 'Pause' : 'Resume'}
                       </button>
                       <button onClick={e => { e.stopPropagation(); handleDelete(c.id) }} className="text-xs text-red-600 hover:underline">
                         Delete
                       </button>
+                      <a href="/monitor" onClick={e => e.stopPropagation()} className="text-xs text-gray-500 hover:underline">Monitor</a>
                     </div>
                   </div>
                 )
